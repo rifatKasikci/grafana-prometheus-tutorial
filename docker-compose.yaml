@@ -1,0 +1,34 @@
+services:
+  web-api:
+    container_name: web-api
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "5000:5000"
+    restart: 'on-failure'
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ./configs/prometheus:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    volumes:
+      - ./configs/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+      - ./configs/grafana/data:/var/lib/grafana
+    user: "1000"
+    links:
+      - prometheus:prometheus
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
